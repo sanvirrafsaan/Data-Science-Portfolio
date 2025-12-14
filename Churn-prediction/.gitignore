@@ -1,1 +1,22 @@
+# Data (never commit)
+**/data/
+*.csv
+*.parquet
 
+# Artifacts
+**/models/
+**/reports/
+
+# Notebook junk
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+
+# macOS
+.DS_Store
+
+# Python packaging/build artifacts
+**/*.egg-info/
+build/
+dist/
