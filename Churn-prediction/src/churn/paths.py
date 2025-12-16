@@ -1,8 +1,7 @@
-from pathlib import Path
+from __future__ import annotations
 
-# --------------------------------------------------
-# Environment detection
-# --------------------------------------------------
+import os
+from pathlib import Path
 
 def running_in_colab() -> bool:
     try:
@@ -11,25 +10,30 @@ def running_in_colab() -> bool:
     except ImportError:
         return False
 
+def drive_mounted() -> bool:
+    return Path("/content/drive/MyDrive").exists()
 
-# --------------------------------------------------
-# Project root
-# --------------------------------------------------
-
-if running_in_colab():
+def mount_drive_if_needed() -> None:
+    """Mount Google Drive only when running in Colab and only if not already mounted."""
+    if not running_in_colab():
+        return
+    if drive_mounted():
+        return
     from google.colab import drive
     drive.mount("/content/drive")
-    PROJECT_ROOT = Path("/content/drive/MyDrive/Data Science Portfolio/churn-prediction")
-else:
-    PROJECT_ROOT = Path.home() / "Desktop/data-science-projects/Data-Science-Portfolio/churn-prediction"
 
+def project_root() -> Path:
+    """Return canonical project root depending on environment."""
+    if running_in_colab():
+        mount_drive_if_needed()
+        return Path("/content/drive/MyDrive/Data Science Portfolio/churn-prediction")
+    else:
+        return Path.home() / "Desktop/data-science-projects/Data-Science-Portfolio/churn-prediction"
 
-# --------------------------------------------------
-# Directory structure
-# --------------------------------------------------
+# Compute roots via function so mounting is controlled
+PROJECT_ROOT = project_root()
 
 DATA_DIR = PROJECT_ROOT / "data"
-
 RAW_DIR = DATA_DIR / "raw"
 INTERIM_DIR = DATA_DIR / "interim"
 PROCESSED_DIR = DATA_DIR / "processed"
@@ -38,28 +42,12 @@ MODELS_DIR = PROJECT_ROOT / "models"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
-
-# --------------------------------------------------
-# Ensure directories exist
-# --------------------------------------------------
-
-def ensure_dirs():
-    for p in [
-        RAW_DIR,
-        INTERIM_DIR,
-        PROCESSED_DIR,
-        MODELS_DIR,
-        FIGURES_DIR,
-    ]:
+def ensure_dirs() -> None:
+    for p in [RAW_DIR, INTERIM_DIR, PROCESSED_DIR, MODELS_DIR, FIGURES_DIR]:
         p.mkdir(parents=True, exist_ok=True)
 
-
-# --------------------------------------------------
-# Debug helper
-# --------------------------------------------------
-
-def debug_print():
+def debug_print() -> None:
     print("Project root:", PROJECT_ROOT)
-    print("Raw data:", list(RAW_DIR.iterdir()) if RAW_DIR.exists() else "Missing")
-    print("Interim data:", list(INTERIM_DIR.iterdir()) if INTERIM_DIR.exists() else "Missing")
+    print("Raw dir exists:", RAW_DIR.exists(), "->", RAW_DIR)
+    print("Interim dir exists:", INTERIM_DIR.exists(), "->", INTERIM_DIR)
 
